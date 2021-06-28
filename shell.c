@@ -13,6 +13,39 @@ char *builtin_str[] = {
         "exit"
 };
 
+/*typedef enum
+{
+    TOKEN_REDIRECTION,
+    TOKEN_PIPE,
+
+};
+typedef struct
+{
+    char content[128];
+    u_int32_t size;
+    e_token_type type;
+} t_lexer_token;
+
+typedef struct
+{
+    t_lexer_token tokens[2048];
+    u_int32_t size;
+} t_lexer;
+
+static const t_oplist existing_token[] ={
+        {">", 1, TOKEN_REDIRECTION},
+        {">&", 2, TOKEN_REDIRECTION},
+        {"<", 1, TOKEN_REDIRECTION},
+        {"<&", 2, TOKEN_REDIRECTION},
+        {"<>", 2, TOKEN_REDIRECTION},
+        {">>", 2, TOKEN_REDIRECTION},
+        {"<<", 2, TOKEN_REDIRECTION},
+        {">|", 2, TOKEN_REDIRECTION},
+        {">>-", 3, TOKEN_REDIRECTION},
+        {">|", 2, TOKEN_REDIRECTION},
+        {"|", 1, TOKEN_PIPE},
+}; */
+
 int (*builtin_func[]) (char **) = {
         &shell_cd,
         &shell_help,
@@ -170,13 +203,21 @@ void shell_loop(void)
     int status;
     do
     {
-        printf("【ツ】 ");
+        // Affiche le chemin du working directory
+        char cwd[1024];
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            printf("%s$ ", cwd);
+        } else {
+            perror("getcwd() error");
+        }
+
+        // Execution de la fonction shell_readLine
         line = shell_readLine();
         args = shell_split_line(line);
         job *theJob = malloc(sizeof(job));
         shell_processTokens(theJob, args);
         //launch_job(theJob);
-        //status = shell_execute(args);
+        status = shell_execute(args);
         free(line);
         free(args);
     } while (status);
@@ -190,7 +231,8 @@ void shell_processTokens(job *j, char ** args) {
                 break;
             }
             else
-                printf("Invalid input\n" );
+                //printf("Invalid input\n" );
+                continue;
     }
 }
 
@@ -266,6 +308,7 @@ char **shell_split_line(char *line) {
     return tokens;
 }
 
+
 int shell_launch(char **args) {
     pid_t pid, wpid;
     int status;
@@ -307,8 +350,11 @@ int shell_cd(char **args) {
         fprintf(stderr, "shell: expected arg to \"cd\"\n");
     } else {
         if(chdir(args[1]) != 0) {
-            perror("shell");
+            perror("[ERROR] cd");
         }
+        /*else{
+            printf(getcwd(, (size_t)size));
+        }*/
     }
     return 1;
 }
@@ -324,6 +370,20 @@ int shell_help(char **args) {
     printf("...good day\n\n");
     return 1;
 }
+
+// Fonction qui renvoie le chemin absolu du dossier courant.
+/*int shell_pwd(){
+    long size;
+    char *buf;
+    char *ptr;
+
+    size = pathconf(".", _PC_PATH_MAX);
+
+    if((buf = (char *)malloc((size_t)size)) != NULL){
+        printf(getcwd(buf, (size_t)size));
+    }
+    return 1;
+}*/
 
 int shell_exit(char **args) {
     return 0;
