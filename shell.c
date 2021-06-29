@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include "shell.h"
 
 char *builtin_str[] = {
@@ -51,6 +52,8 @@ int (*builtin_func[]) (char **) = {
         &shell_help,
         &shell_exit
 };
+
+void shell_parse(char **args, char *line);
 
 int main(int argc, char **argv)
 {
@@ -214,6 +217,7 @@ void shell_loop(void)
         // Execution de la fonction shell_readLine
         line = shell_readLine();
         args = shell_split_line(line);
+        shell_parse(args, line); // test sur le parsage pour gérer les chevrons
         job *theJob = malloc(sizeof(job));
         shell_processTokens(theJob, args);
         //launch_job(theJob);
@@ -221,6 +225,23 @@ void shell_loop(void)
         free(line);
         free(args);
     } while (status);
+}
+
+void shell_parse(char **args, char *line) {
+    for(char **arg = args; *arg; ++arg){
+        printf("test : %s\n", *arg);
+        if(strcmp(*arg, ">") == 0){
+            // Faire quelque chose avec la redirection >
+            // On essaie de reconnaître le filename
+            char ** c = ++arg;
+            printf("filename : %s\n", *c);
+            int fDesc = open(*c, O_WRONLY, 0666);
+            printf("Value du fileDescriptor de l'open du fichier : %i\n", fDesc);
+        }
+        else if(strcmp(*arg, "<") == 0){
+            // Faire quelque chose avec la redirection <
+        }
+    }
 }
 
 void shell_processTokens(job *j, char ** args) {
@@ -370,20 +391,6 @@ int shell_help(char **args) {
     printf("...good day\n\n");
     return 1;
 }
-
-// Fonction qui renvoie le chemin absolu du dossier courant.
-/*int shell_pwd(){
-    long size;
-    char *buf;
-    char *ptr;
-
-    size = pathconf(".", _PC_PATH_MAX);
-
-    if((buf = (char *)malloc((size_t)size)) != NULL){
-        printf(getcwd(buf, (size_t)size));
-    }
-    return 1;
-}*/
 
 int shell_exit(char **args) {
     return 0;
