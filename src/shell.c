@@ -2,10 +2,13 @@
 // Created by asusrog on 14/06/2021.
 //
 #include <fcntl.h>
+#include <pwd.h>
 
 #include "shell.h"
 #include "process.h"
 #include "job.h"
+#include "colors.h"
+
 char *builtin_str[] = {
         "cd",
         "help",
@@ -207,6 +210,44 @@ void launch_job(job *j, int foreground) {
         put_job_in_background(j, 0);
 }
 
+void shell_display(){
+    char hostname[65536];
+    int host = gethostname(hostname, sizeof(hostname));
+    if (host){
+        perror("Error displaying the host name");
+        exit(EXIT_FAILURE);
+    }
+    uid_t uid = getuid();
+    struct passwd *passwd = getpwuid(uid);
+    if(!passwd){
+        perror("Error printing the username");
+        exit(EXIT_FAILURE);
+    }
+    char *username = NULL;
+    // Affiche le chemin du working directory
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        username = getenv("USER");
+        printf(ANSI_BLUE_BG);
+        printf(ANSI_WHITE);
+        printf("%s",username);
+        printf(ANSI_RESET);
+        printf("@");
+        printf(ANSI_RESET);
+        printf(ANSI_GREY_BG);
+        printf(ANSI_BLACK);
+        printf("%s",cwd);
+        printf(ANSI_RESET);
+        printf(ANSI_BLUE_BG);
+        printf(ANSI_WHITE);
+        printf("$");
+        printf(ANSI_RESET);
+        printf(" ");
+    } else {
+        perror("getcwd() error");
+    }
+
+}
 
 void shell_loop(void)
 {
@@ -217,14 +258,7 @@ void shell_loop(void)
     int status;
     do
     {
-        // Affiche le chemin du working directory
-        char cwd[1024];
-        if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            printf("%s$ ", cwd);
-        } else {
-            perror("getcwd() error");
-        }
-
+        shell_display();
         // Execution de la fonction shell_readLine
         line = shell_readLine();
         args = shell_split_line(line);
