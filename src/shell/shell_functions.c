@@ -14,6 +14,7 @@ char *builtin_str[] = {
         "clear",
         "pwd",
         "cp",
+        "mkdir",
         "exit"
 };
 
@@ -23,6 +24,7 @@ int (*builtin_func[]) (char **) = {
         &shell_clear,
         &shell_pwd,
         &shell_cp,
+        &shell_mkdir,
         &shell_exit
 };
 
@@ -89,46 +91,47 @@ int shell_exit(char **args) {
     return 0;
 }
 
-int shell_cp(char **args){
-    printf("eyyyyo\n");
+int shell_cp(char **args) {
     printf(args[0]);
+    printf("\n");
     printf(args[1]);
+    printf("\n");
     printf(args[2]);
-/*    if (args[0] == NULL || args[1] == NULL) {
-        printf(ANSI_RED);
-        printf("shell expected arguments\n");
-        printf(ANSI_RESET);
-        return 1;
-    }
-    else if (strcmp(args[1], "-r") != 0 && (args[2] == NULL || args [3] == NULL)){
-        printf(ANSI_RED);
-        printf("shell expected arguments\n");
-        printf(ANSI_RESET);
-        return 1;
-    }
-*/
-    struct stat istat;
-    stat(args[1], &istat);
+    printf("\n");
+    printf(args[3]);
+    printf("\n");
 
-    if (strcmp(args[1], "-r") != 0){
+    if (strcmp(args[1], "-r") && (!args[2] || !args[3])) {
+        printf(ANSI_RED);
+        printf("a shell expected arguments\n");
+        printf(ANSI_RESET);
+        return 1;
+    }else if (!args[1]||!args[2]) {
+        printf(ANSI_RED);
+        printf("shell expected arguments\n");
+        printf(ANSI_RESET);
+        return 1;
+    }
+
+
+    struct stat istat;
+    if (args[3]) {
+        stat(args[2], &istat);
         // Check if directory or file.
         if (S_ISDIR(istat.st_mode)) {
             copyDirectoryRecusivly(args[2], args[3]);
-            return 1;
-        }
-        else{
+        } else {
             printf("shell : flag error. Check cp --help for more info.\n");
-            return 1;
         }
-    }
-    else{
+    } else {
+        stat(args[1], &istat);
         if (S_ISDIR(istat.st_mode)) {
             copydir(args[1], args[2]);
-        }else {
+        } else {
             copyFileWithAccessRights(args[1], args[2]);
         }
+        return 1;
     }
-    return 1;
 }
 
 char *makepath(const char *path, const char *file) {
@@ -144,12 +147,12 @@ char *makepath(const char *path, const char *file) {
     return res;
 }
 
-int copyFileWithAccessRights(const char *input, const char *output) {
+void copyFileWithAccessRights(const char *input, const char *output) {
     // Try to open input file in read only mode
     int idesc = open(input, O_RDONLY);
     if (idesc == -1) {
         perror("ERROR: Can't Open Input File");
-        exit(EXIT_FAILURE);
+        return;
     }
     // Try to open the output file
     // If it doesn't exist create it using the
@@ -157,17 +160,17 @@ int copyFileWithAccessRights(const char *input, const char *output) {
     int odesc = open(output, O_WRONLY | O_CREAT | O_EXCL, 0666);
     if (odesc == -1) {
         perror("ERROR: Can't Open Output File");
-        exit(EXIT_FAILURE);
+        return;
     }
     // Give new file the same access rights as the old one
     struct stat istat;
     if (fstat(idesc, &istat) < 0) {
         perror("ERROR: Cannot Change Access Rights");
-        exit(EXIT_FAILURE);
+        return;
     }
     if (fchmod(odesc, istat.st_mode) < 0) {
         perror("ERROR: Cannot Change Access Rights");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     while (1) {
@@ -181,7 +184,7 @@ int copyFileWithAccessRights(const char *input, const char *output) {
             if (errno == EAGAIN || errno == EINTR)
                 continue;
             perror("ERROR: Can't Read File");
-            exit(EXIT_FAILURE);
+            return;
         }
         // Writing ...
         int pos = 0;
@@ -192,7 +195,7 @@ int copyFileWithAccessRights(const char *input, const char *output) {
                 if (errno == EAGAIN || errno == EINTR)
                     continue;
                 perror("ERROR: Can't Write To File");
-                exit(EXIT_FAILURE);
+                return;
             }
             rcnt -= wcnt;
             pos += wcnt;
@@ -203,7 +206,6 @@ int copyFileWithAccessRights(const char *input, const char *output) {
     close(odesc);
 
     printf("File Copy: Done\n");
-    return 0;
 }
 
 void copydir(const char *inputDirectory, const char *outputDirectory) {
@@ -211,7 +213,7 @@ void copydir(const char *inputDirectory, const char *outputDirectory) {
     DIR *dir = opendir(inputDirectory);
     if (dir == NULL) {
         perror("ERROR: Invalid Input Directory");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Give output directory same access rights as input
@@ -243,22 +245,22 @@ void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirect
     DIR *dir = opendir(inputDirectory);
     if (dir == NULL) {
         perror("ERROR: Invalid Input Directory");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Give output directory same access rights as input
     struct stat istat;
     if (stat(inputDirectory, &istat) < 0) {
         perror("ERROR: Cannot Change Access Rights");
-        exit(EXIT_FAILURE);
+        return;
     }
     if (mkdir(outputDirectory, 0777) < 0) {
         perror("ERROR While Opening Output Directory");
-        exit(EXIT_FAILURE);
+        return;
     }
     if (chmod(outputDirectory, istat.st_mode) < 0) {
         perror("ERROR: Cannot Change Access Rights");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     // Copy all contents of the input directory recursively
@@ -269,7 +271,7 @@ void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirect
             if (errno == 0)
                 break;
             perror("ERROR: Can't Read Directory Contents");
-            exit(EXIT_FAILURE);
+            return;
         }
 
         // Don't copy hidden files or ..
@@ -283,7 +285,7 @@ void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirect
         struct stat istat;
         if (stat(inputDirName, &istat) < 0) {
             perror("ERROR: Cannot Change Access Rights");
-            exit(EXIT_FAILURE);
+            return;
         }
         if (S_ISDIR(istat.st_mode))
             // Copy recursively if another directory
@@ -298,4 +300,33 @@ void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirect
     // Close directory
     closedir(dir);
     printf("--- Dir Copy : DONE\n");
+}
+
+int shell_mkdir(char **args) {
+    // Test for not enough arguments
+    if (!args[1]) {
+        printf(ANSI_RED);
+        printf("mkdir: not enough arguments\n");
+        return 1;
+    }
+
+    // copy all given directories
+    int i = 1;
+
+    while (args[i]) {
+        // See if directory already exits
+        struct stat st = {0};
+
+        if (stat(args[i], &st) == -1) {
+            mkdir(args[i], 0700);
+            i++;
+        } else {
+            printf(ANSI_BLUE);
+            printf("ERROR: Directory already exits\n");
+            printf("Aborting...\n");
+            printf(ANSI_RESET);
+            return i;
+        }
+    }
+    return 1;
 }
