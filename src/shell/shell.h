@@ -84,14 +84,54 @@ void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirect
 /*
  ------------- Shell Commands -------------
  */
+/**
+ * Change directory
+ * @param args path
+ * @return
+ */
 int shell_cd(char **args);
+/**
+ * prints help
+ * @param args
+ * @return
+ */
 int shell_help(char **args);
+/**
+ * clear screen
+ * @param args
+ * @return
+ */
 int shell_clear(char **args);
+/**
+ * exits shell
+ * @param args
+ * @return
+ */
 int shell_exit(char **args);
+/**
+ * prints current working directory
+ * @param args
+ * @return
+ */
 int shell_pwd(char **args);
+/**
+ * shell copy function for files and directories
+ * @param args tokens and targets
+ * @return
+ */
 int shell_cp(char **args);
+/**
+ * Makes a list of directories from args if they dont
+ * already exist
+ * @param args dirs to make
+ * @return
+ */
 int shell_mkdir(char **args);
 
+/**
+ * Prints shell builtin functions
+ * @return
+ */
 int shell_num_builtins();
 
 

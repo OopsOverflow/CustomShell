@@ -48,15 +48,7 @@ void init_shell() {
     }
 }
 
-/**
- * 
- * @param p 
- * @param pgid 
- * @param infile 
- * @param outfile 
- * @param errfile 
- * @param foreground 
- */
+
 void launch_process(process *p, pid_t pgid,
                     int infile, int outfile, int errfile,
                     int foreground) {
@@ -377,6 +369,17 @@ int shell_launch(char **args) {
     return 1;
 }
 
+size_t str_count_char(const char *s, int c)
+{
+    size_t count = 0;
+
+    while (s && *s)
+        if (*s++ == c)
+            ++count;
+
+    return count;
+}
+
 void shell_loop(void)
 {
     char* descr = "           _.---._\n       ./.'"".'/|\\`.""'.\\.        MicroShell\n      :  .' / | \\ `.  :       Made By:\n      '.'  /  |  \\  `.'       Esteban & Houssem\n       `. /   |   \\ .'\n         `-.__|__.-'\n\n";
@@ -401,36 +404,36 @@ void shell_loop(void)
         //launch_job(theJob, 0);
 
         // Si il y a un/des pipe(s), on sépare la commande en plusieurs commande grâce à la fonction split
-        char **cmds = split(line, "|");
+        if (str_count_char(line, '|')) {
+            char **cmds = split(line, "|");
 
-        for(char **str = cmds; *str; str++){
-            char **splittedCmd = split(*str, " ");
+            for (char **str = cmds; *str; str++) {
+                char **splittedCmd = split(*str, " ");
 
-            process *p = (process *) malloc(sizeof(process));
-            p->argv = splittedCmd;
-            p->next = NULL;
+                process *p = (process *) malloc(sizeof(process));
+                p->argv = splittedCmd;
+                p->next = NULL;
 
-            for(char **arg = splittedCmd; *arg; ++arg){
-                if(strcmp(*arg, ">") == 0){
-                    *arg = NULL;
+                for (char **arg = splittedCmd; *arg; ++arg) {
+                    if (strcmp(*arg, ">") == 0) {
+                        *arg = NULL;
+                    } else if (strcmp(*arg, "<") == 0) {
+                        *arg = NULL;
+                    }
                 }
-                else if(strcmp(*arg, "<") == 0) {
-                    *arg = NULL;
-                }
-            }
 
-            if(theJob->first_process){
-                process *last_proc = theJob->first_process;
-                while(last_proc->next){
-                    last_proc = last_proc->next;
+                if (theJob->first_process) {
+                    process *last_proc = theJob->first_process;
+                    while (last_proc->next) {
+                        last_proc = last_proc->next;
+                    }
+                    last_proc->next = p;
+                } else {
+                    theJob->first_process = p;
                 }
-                last_proc->next = p;
-            }
-            else{
-                theJob->first_process = p;
             }
         }
-        launch_job(theJob,1);
+        //launch_job(theJob,1);
 
         status = shell_execute(args);
         free(line);

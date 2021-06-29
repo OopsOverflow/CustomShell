@@ -66,7 +66,7 @@ int shell_help(char **args) {
     for(i=0;i<shell_num_builtins();i++) {
         printf("    %s\n",builtin_str[i]);
     }
-    printf("\na man is a dogs best friend\n");
+
     printf("...good day\n\n");
     return 1;
 }
@@ -92,14 +92,6 @@ int shell_exit(char **args) {
 }
 
 int shell_cp(char **args) {
-    printf(args[0]);
-    printf("\n");
-    printf(args[1]);
-    printf("\n");
-    printf(args[2]);
-    printf("\n");
-    printf(args[3]);
-    printf("\n");
 
     if (strcmp(args[1], "-r") && (!args[2] || !args[3])) {
         printf(ANSI_RED);
