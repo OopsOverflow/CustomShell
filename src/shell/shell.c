@@ -7,42 +7,6 @@
 #include "shell.h"
 #include "../util/colors.h"
 
-
-/*typedef enum
-{
-    TOKEN_REDIRECTION,
-    TOKEN_PIPE,
-
-};
-typedef struct
-{
-    char content[128];
-    u_int32_t size;
-    e_token_type type;
-} t_lexer_token;
-
-typedef struct
-{
-    t_lexer_token tokens[2048];
-    u_int32_t size;
-} t_lexer;
-
-static const t_oplist existing_token[] ={
-        {">", 1, TOKEN_REDIRECTION},
-        {">&", 2, TOKEN_REDIRECTION},
-        {"<", 1, TOKEN_REDIRECTION},
-        {"<&", 2, TOKEN_REDIRECTION},
-        {"<>", 2, TOKEN_REDIRECTION},
-        {">>", 2, TOKEN_REDIRECTION},
-        {"<<", 2, TOKEN_REDIRECTION},
-        {">|", 2, TOKEN_REDIRECTION},
-        {">>-", 3, TOKEN_REDIRECTION},
-        {">|", 2, TOKEN_REDIRECTION},
-        {"|", 1, TOKEN_PIPE},
-}; */
-
-
-
 void shell_parse(char **args, char *line);
 
 void init_shell() {
@@ -259,7 +223,7 @@ void shell_parse(char **args, char *line) {
             // On essaie de reconnaître le filename
             char ** c = ++arg;
             printf("filename : %s\n", *c);
-            int fDesc = open(*c, O_WRONLY, 0666);
+            int fDesc = open(*c, O_WRONLY, 0666); // On ouvre le fichier qui suit le chevron, s'il n'existe pas il est crée.
             printf("Value du fileDescriptor de l'open du fichier : %i\n", fDesc);
         }
         else if(strcmp(*arg, "<") == 0){

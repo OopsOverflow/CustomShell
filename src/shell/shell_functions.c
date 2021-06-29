@@ -68,6 +68,7 @@ int shell_help(char **args) {
     printf("...good day\n\n");
     return 1;
 }
+
 int shell_pwd(char **args)
 {
     char pwd[1024];
@@ -91,9 +92,9 @@ int shell_exit(char **args) {
 
 int shell_cp(char **args){
     printf("eyyyyo\n");
-    printf(args[0]);
-    printf(args[1]);
-    printf(args[2]);
+    //printf(args[0]);
+    //printf(args[1]);
+    //printf(args[2]);
 /*    if (args[0] == NULL || args[1] == NULL) {
         printf(ANSI_RED);
         printf("shell expected arguments\n");
@@ -129,6 +130,10 @@ int shell_cp(char **args){
         }
     }
     return 1;
+}
+
+int shell_add(int a, int b){
+    return a+b;
 }
 
 char *makepath(const char *path, const char *file) {
