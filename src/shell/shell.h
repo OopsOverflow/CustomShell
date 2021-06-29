@@ -41,7 +41,7 @@ void shell_processTokens(job *j, char **args);
  * @param output fresh copy of input
  * @return
  */
-int copyFileWithAccessRights(const char *input, const char *output);
+void copyFileWithAccessRights(const char *input, const char *output);
 
 /**
  * Creates a anew path from an already exsiting path and
@@ -76,6 +76,7 @@ int shell_clear(char **args);
 int shell_exit(char **args);
 int shell_pwd(char **args);
 int shell_cp(char **args);
+int shell_mkdir(char **args);
 
 int shell_num_builtins();
 

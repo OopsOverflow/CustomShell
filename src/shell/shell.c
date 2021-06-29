@@ -8,42 +8,6 @@
 #include "../util/colors.h"
 
 
-/*typedef enum
-{
-    TOKEN_REDIRECTION,
-    TOKEN_PIPE,
-
-};
-typedef struct
-{
-    char content[128];
-    u_int32_t size;
-    e_token_type type;
-} t_lexer_token;
-
-typedef struct
-{
-    t_lexer_token tokens[2048];
-    u_int32_t size;
-} t_lexer;
-
-static const t_oplist existing_token[] ={
-        {">", 1, TOKEN_REDIRECTION},
-        {">&", 2, TOKEN_REDIRECTION},
-        {"<", 1, TOKEN_REDIRECTION},
-        {"<&", 2, TOKEN_REDIRECTION},
-        {"<>", 2, TOKEN_REDIRECTION},
-        {">>", 2, TOKEN_REDIRECTION},
-        {"<<", 2, TOKEN_REDIRECTION},
-        {">|", 2, TOKEN_REDIRECTION},
-        {">>-", 3, TOKEN_REDIRECTION},
-        {">|", 2, TOKEN_REDIRECTION},
-        {"|", 1, TOKEN_PIPE},
-}; */
-
-
-
-void shell_parse(char **args, char *line);
 
 void init_shell() {
     pid_t shell_pgid;
@@ -86,11 +50,8 @@ void launch_process(process *p, pid_t pgid,
                     int infile, int outfile, int errfile,
                     int foreground) {
     pid_t pid;
-
-    pid_t shell_pgid;
-    int shell_terminal;
-    struct termios shell_tmodes;
-    int shell_is_interactive;
+    int shell_terminal = STDIN_FILENO;
+    int shell_is_interactive = isatty(shell_terminal); ;
 
     if (shell_is_interactive) {
         /* Put the process into the process group and give the process group
@@ -133,7 +94,9 @@ void launch_process(process *p, pid_t pgid,
 }
 
 void launch_job(job *j, int foreground) {
-    int shell_is_interactive;
+
+    int shell_terminal = STDIN_FILENO;
+    int shell_is_interactive = isatty(shell_terminal);
 
     process *p;
     pid_t pid;
@@ -241,31 +204,14 @@ void shell_loop(void)
         // Execution de la fonction shell_readLine
         line = shell_readLine();
         args = shell_split_line(line);
-        shell_parse(args, line); // test sur le parsage pour gérer les chevrons
+        //shell_parse(args, line); // test sur le parsage pour gérer les chevrons
         job *theJob = malloc(sizeof(job));
-        shell_processTokens(theJob, args);
-        //launch_job(theJob);
+        //shell_processTokens(theJob, args);
+        //launch_job(theJob, 0);
         status = shell_execute(args);
         free(line);
         free(args);
     } while (status);
-}
-
-void shell_parse(char **args, char *line) {
-    for(char **arg = args; *arg; ++arg){
-        printf("test : %s\n", *arg);
-        if(strcmp(*arg, ">") == 0){
-            // Faire quelque chose avec la redirection >
-            // On essaie de reconnaître le filename
-            char ** c = ++arg;
-            printf("filename : %s\n", *c);
-            int fDesc = open(*c, O_WRONLY, 0666);
-            printf("Value du fileDescriptor de l'open du fichier : %i\n", fDesc);
-        }
-        else if(strcmp(*arg, "<") == 0){
-            // Faire quelque chose avec la redirection <
-        }
-    }
 }
 
 void shell_processTokens(job *j, char ** args) {
