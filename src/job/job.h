@@ -5,8 +5,8 @@
 #ifndef MICROSHELL_job_H
 #define MICROSHELL_job_H
 
-#include "headers.h"
-#include "process.h"
+#include "../util/headers.h"
+#include "../process/process.h"
 
 /* A job is a pipeline of processes.  */
 typedef struct job

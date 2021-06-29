@@ -3,7 +3,7 @@
 //
 
 #include "process.h"
-#include "job.h"
+#include "../job/job.h"
 
 
 /* Store the status of the process pid that was returned by waitpid.

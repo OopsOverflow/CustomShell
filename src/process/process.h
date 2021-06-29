@@ -5,8 +5,8 @@
 #ifndef MICROSHELL_process_H
 #define MICROSHELL_process_H
 
-#include "headers.h"
-#include "job.h"
+#include "../util/headers.h"
+#include "../job/job.h"
 
 /* A process is a single process.  */
 typedef struct process

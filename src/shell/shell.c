@@ -5,15 +5,8 @@
 #include <pwd.h>
 
 #include "shell.h"
-#include "process.h"
-#include "job.h"
-#include "colors.h"
+#include "../util/colors.h"
 
-char *builtin_str[] = {
-        "cd",
-        "help",
-        "exit"
-};
 
 /*typedef enum
 {
@@ -48,23 +41,9 @@ static const t_oplist existing_token[] ={
         {"|", 1, TOKEN_PIPE},
 }; */
 
-int (*builtin_func[]) (char **) = {
-        &shell_cd,
-        &shell_help,
-        &shell_exit
-};
+
 
 void shell_parse(char **args, char *line);
-
-int main(int argc, char **argv)
-{
-    // Config Files
-    // Command Line Loop
-    init_shell();
-    shell_loop();
-    // Shut Down / Clean Up
-    return EXIT_SUCCESS;
-}
 
 void init_shell() {
     pid_t shell_pgid;
@@ -394,49 +373,5 @@ int shell_launch(char **args) {
     return 1;
 }
 
-int shell_execute(char **args) {
-    int i;
-    if(args[0] == NULL) {
-        return 1;
-    }
-    for(i=0; i<shell_num_builtins(); i++) {
-        if(strcmp(args[0], builtin_str[i]) == 0) {
-            return (*builtin_func[i]) (args);
-        }
-    }
-    return shell_launch(args);
-}
 
-int shell_num_builtins() {
-    return sizeof(builtin_str) / sizeof(char *);
-}
 
-int shell_cd(char **args) {
-    if(args[1] == NULL) {
-        fprintf(stderr, "shell: expected arg to \"cd\"\n");
-    } else {
-        if(chdir(args[1]) != 0) {
-            perror("[ERROR] cd");
-        }
-        /*else{
-            printf(getcwd(, (size_t)size));
-        }*/
-    }
-    return 1;
-}
-
-int shell_help(char **args) {
-    int i;
-    printf("\nThis is a shell.\n\n");
-    printf("The following commands are built in:\n");
-    for(i=0;i<shell_num_builtins();i++) {
-        printf("    %s\n",builtin_str[i]);
-    }
-    printf("\na man is a dogs best friend\n");
-    printf("...good day\n\n");
-    return 1;
-}
-
-int shell_exit(char **args) {
-    return 0;
-}

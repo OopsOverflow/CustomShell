@@ -3,8 +3,8 @@
 //
 
 #include "job.h"
-#include "process.h"
-#include "shell.h"
+#include "../process/process.h"
+#include "../shell/shell.h"
 
 /* The active jobs are linked into a list.  This is its head.   */
 job *first_job;
