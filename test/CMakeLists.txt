@@ -13,13 +13,29 @@ file(GLOB sources "%{PROJECT_SOURCE_DIR}/src/shell_functions.c")
 
 file(GLOB tests "%{PROJECT_SOURCE_DIR}/Google_tests/lib/ShellTests.c")
 
-foreach(file ${tests})
-    set(name)
-    get_filename_component(name ${file} NAME_WE)
-    add_executable("${name}_tests"
-            ${sources}
-            ${file}
-            "${PROJECT_SOURCE_DIR}/test/ShellTests.c")
-    target_link_libraries("${name}_tests" gtest_main)
-    add_test(NAME ${name} COMMAND "${name}_tests")
-endforeach()
+cmake_minimum_required(VERSION 3.16)
+project(my_project)
+
+# GoogleTest requires at least C++11
+set(CMAKE_Cxx_STANDARD 11)
+
+set(This ShellTests)
+
+set(Sources
+        ShellTests.cpp)
+
+add_executable(${This} ${Sources})
+
+target_link_libraries (${This} PUBLIC googletest)
+
+target_link_libraries(${This} PUBLIC
+        gtest_main
+        Shell
+)
+add_test(
+        NAME ${This}
+        COMMAND ${This}
+)
+
+include(GoogleTest)
+gtest_discover_tests(ShellTests)
