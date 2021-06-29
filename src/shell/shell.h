@@ -23,18 +23,30 @@
    ----------------- Shell ---------------
  */
 
+// Shell init functions
 void init_shell();
 void launch_process (process *p, pid_t pgid, int infile, int outfile, int errfile,
                      int foreground);
 void launch_job(job *j, int foreground);
 void shell_loop(void);
-char *shell_readLine(void);
-char **shell_split_line(char *line);
 int shell_launch(char **args);
 int shell_execute(char **args);
 void shell_processTokens(job *j, char **args);
 
-// Alpha fx
+/*
+ -------------Shell parser functions--------
+*/
+char *shell_readLine(void);
+char **shell_split_line(char *line);
+int shell_parse_chevron_in(char **pString);
+
+int shell_parse_chevron_out(char **pString);
+
+
+/*
+ -------------Auxiliary Functions -----------
+ */
+
 /**
  * Copies a file and gives same access rights to its resulting copy
  * @param input file to be copied
@@ -69,7 +81,9 @@ void copydir(const char *inputDirectory, const char *outputDirectory);
 void copyDirectoryRecusivly(const char *inputDirectory, const char *outputDirectory);
 
 
-// Commands
+/*
+ ------------- Shell Commands -------------
+ */
 int shell_cd(char **args);
 int shell_help(char **args);
 int shell_clear(char **args);

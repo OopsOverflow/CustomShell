@@ -7,10 +7,10 @@
 #include "shell.h"
 #include "../util/colors.h"
 
-int shell_parse_chevron_in(char **pString);
 
-int shell_parse_chevron_out(char **pString);
-
+/**
+ * Initialize shell by configuring its properties
+ */
 void init_shell() {
     pid_t shell_pgid;
     int shell_terminal;
@@ -48,12 +48,21 @@ void init_shell() {
     }
 }
 
+/**
+ * 
+ * @param p 
+ * @param pgid 
+ * @param infile 
+ * @param outfile 
+ * @param errfile 
+ * @param foreground 
+ */
 void launch_process(process *p, pid_t pgid,
                     int infile, int outfile, int errfile,
                     int foreground) {
     pid_t pid;
     int shell_terminal = STDIN_FILENO;
-    int shell_is_interactive = isatty(shell_terminal); ;
+    int shell_is_interactive = isatty(shell_terminal);
 
     if (shell_is_interactive) {
         /* Put the process into the process group and give the process group
@@ -153,7 +162,9 @@ void launch_job(job *j, int foreground) {
     else
         put_job_in_background(j, 0);
 }
-
+/**
+ * Controls the shells looks and text coloring
+ */
 void shell_display(){
     char hostname[65536];
     int host = gethostname(hostname, sizeof(hostname));
@@ -192,9 +203,11 @@ void shell_display(){
     }
 
 }
-
-int shell_parse_chevron_out(char **pString) {
-    for (char **arg = pString ; *arg ; ++arg){
+/*
+ * Parser function that allows for parsing ">" commands
+ */
+int shell_parse_chevron_out(char **args) {
+    for (char **arg = args ; *arg ; ++arg){
         if(strcmp(*arg, ">") == 0){
             char *f = *(arg+1);
             if(f==NULL){
@@ -213,8 +226,11 @@ int shell_parse_chevron_out(char **pString) {
     return STDIN_FILENO;
 }
 
-int shell_parse_chevron_in(char **pString) {
-    for (char **arg = pString ; *arg ; ++arg){
+/*
+ * Parser function that allows for parsing "<" commands
+ */
+int shell_parse_chevron_in(char **args) {
+    for (char **arg = args ; *arg ; ++arg){
         if(strcmp(*arg, "<") == 0){
             char *f = *(arg+1);
             if(f==NULL){
@@ -233,18 +249,6 @@ int shell_parse_chevron_in(char **pString) {
     return STDIN_FILENO;
 }
 
-void shell_processTokens(job *j, char ** args) {
-    int i;
-    for(i = 0; i < sizeof(args) / sizeof(args[0]); i=i+1) {
-        if(strcmp(args[i],"|") == 0) {
-            printf(" Pipe !\n");
-            break;
-        }
-        else
-            //printf("Invalid input\n" );
-            continue;
-    }
-}
 
 /*
  *  The code in this method could be replaced with the following:
@@ -289,7 +293,11 @@ char *shell_readLine(void)
     }
 }
 
-// Author : https://segfault42.github.io/posts/minishell
+/**
+ * Parser function to split line into different arguments
+ * @param line parsed line
+ * @return list of arguments
+ */
 char **shell_split_line(char *line) {
     int buffsize = SHELL_TOK_BUFFSIZE, position = 0;
     char **tokens = malloc(buffsize * sizeof(char *));
@@ -316,11 +324,17 @@ char **shell_split_line(char *line) {
     return tokens;
 }
 
-static char **split(char *r_cmd, char *c){
+/**
+ * parser function to split cstring using chars
+ * @param list of args to split
+ * @param c the characters used to split
+ * @return split commands
+ */
+static char **split(char *args, char *c){
     char *ptr = NULL;
     char **cmd_n = NULL;
     size_t idx = 0;
-    ptr = strtok(r_cmd, c);
+    ptr = strtok(args, c);
     while(ptr){
         if(strlen(ptr) > 0){
             cmd_n = (char **) realloc(cmd_n, (cmd_n, (idx+1) * sizeof(char *)));

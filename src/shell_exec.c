@@ -1,7 +1,7 @@
 //
 // Created by houssem on 29/06/2021.
 //
-#include "src/shell/shell.h"
+#include "shell/shell.h"
 
 int main(int argc, char **argv)
 {
