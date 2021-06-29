@@ -1,12 +1,10 @@
 //
 // Created by asusrog on 14/06/2021.
 //
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <string.h>
-#include "shell.h"
 
+#include "shell.h"
+#include "process.h"
+#include "job.h"
 char *builtin_str[] = {
         "cd",
         "help",
@@ -63,6 +61,10 @@ int main(int argc, char **argv)
 }
 
 void init_shell() {
+    pid_t shell_pgid;
+    int shell_terminal;
+    struct termios shell_tmodes;
+    int shell_is_interactive;
     /* See if we are running interactively.  */
     shell_terminal = STDIN_FILENO;
     shell_is_interactive = isatty(shell_terminal);
@@ -96,9 +98,14 @@ void init_shell() {
 }
 
 void launch_process(process *p, pid_t pgid,
-                           int infile, int outfile, int errfile,
-                           int foreground) {
+                    int infile, int outfile, int errfile,
+                    int foreground) {
     pid_t pid;
+
+    pid_t shell_pgid;
+    int shell_terminal;
+    struct termios shell_tmodes;
+    int shell_is_interactive;
 
     if (shell_is_interactive) {
         /* Put the process into the process group and give the process group
@@ -141,6 +148,8 @@ void launch_process(process *p, pid_t pgid,
 }
 
 void launch_job(job *j, int foreground) {
+    int shell_is_interactive;
+
     process *p;
     pid_t pid;
     int mypipe[2], infile, outfile;
@@ -198,6 +207,8 @@ void launch_job(job *j, int foreground) {
 
 void shell_loop(void)
 {
+    char* descr = "           _.---._\n       ./.'"".'/|\\`.""'.\\.        MicroShell\n      :  .' / | \\ `.  :       Made By:\n      '.'  /  |  \\  `.'       Esteban & Houssem\n       `. /   |   \\ .'\n         `-.__|__.-'\n\n";
+    printf("%s",descr);
     char *line;
     char **args;
     int status;
@@ -226,13 +237,13 @@ void shell_loop(void)
 void shell_processTokens(job *j, char ** args) {
     int i;
     for(i = 0; i < sizeof(args) / sizeof(args[0]); i=i+1) {
-            if(strcmp(args[i],"|") == 0) {
-                printf(" Pipe !\n");
-                break;
-            }
-            else
-                //printf("Invalid input\n" );
-                continue;
+        if(strcmp(args[i],"|") == 0) {
+            printf(" Pipe !\n");
+            break;
+        }
+        else
+            //printf("Invalid input\n" );
+            continue;
     }
 }
 

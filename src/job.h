@@ -1,27 +1,12 @@
 //
-// Created by asusrog on 14/06/2021.
+// Created by houssem on 29/06/2021.
 //
 
-#ifndef UNTITLED_UTIL_H
-#define UNTITLED_UTIL_H
+#ifndef MICROSHELL_job_H
+#define MICROSHELL_job_H
 
-#include <termios.h>
-#include <stdio.h>
-
-/*
-  ---------- Job Control Done Here ----------
- */
-
-/* A process is a single process.  */
-typedef struct process
-{
-    struct process *next;       /* next process in pipeline */
-    char **argv;                /* for exec */
-    pid_t pid;                  /* process ID */
-    char completed;             /* true if process has completed */
-    char stopped;               /* true if process has stopped */
-    int status;                 /* reported status value */
-} process;
+#include "headers.h"
+#include "process.h"
 
 /* A job is a pipeline of processes.  */
 typedef struct job
@@ -35,9 +20,6 @@ typedef struct job
     int stdin, stdout, stderr;  /* standard i/o channels */
 } job;
 
-
-/* The active jobs are linked into a list.  This is its head.   */
-job *first_job;
 
 /* Find the active job with the indicated pgid.  */
 job *find_job (pid_t pgid);
@@ -77,4 +59,5 @@ void format_job_info (job *j, const char *status);
 void do_job_notification ();
 
 
-#endif //UNTITLED_UTIL_H
+
+#endif //MICROSHELL_job_H

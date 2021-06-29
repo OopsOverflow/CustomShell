@@ -1,13 +1,14 @@
 //
-// Created by asusrog on 14/06/2021.
+// Created by houssem on 29/06/2021.
 //
 
-#include <sys/wait.h>
-#include <termios.h>
-#include <errno.h>
-#include <asm-generic/errno.h>
-#include "util.h"
+#include "job.h"
+#include "process.h"
 #include "shell.h"
+
+/* The active jobs are linked into a list.  This is its head.   */
+job *first_job;
+
 /* Find the active job with the indicated pgid.  */
 job *find_job (pid_t pgid) {
 
@@ -49,6 +50,8 @@ int job_is_completed (job *j) {
    SIGCONT signal to wake it up before we block.  */
 
 void put_job_in_foreground (job *j, int cont) {
+    pid_t shell_pgid;
+    int shell_terminal;
     /* Put the job into the foreground.  */
     tcsetpgrp (shell_terminal, j->pgid);
     /* Send the job a continue signal, if necessary.  */
@@ -75,61 +78,6 @@ void put_job_in_background (job *j, int cont) {
     if (cont)
         if (kill (-j->pgid, SIGCONT) < 0)
             perror ("kill (SIGCONT)");
-}
-
-/* Store the status of the process pid that was returned by waitpid.
-   Return 0 if all went well, nonzero otherwise.  */
-int mark_process_status (pid_t pid, int status) {
-    job *j;
-    process *p;
-    if (pid > 0) {
-        /* Update the record for the process.  */
-        for (j = first_job; j; j = j->next)
-            for (p = j->first_process; p; p = p->next)
-                if (p->pid == pid) {
-                    p->status = status;
-                    if (WIFSTOPPED (status))
-                        p->stopped = 1;
-                    else {
-                        p->completed = 1;
-                        if (WIFSIGNALED (status))
-                            fprintf (stderr, "%d: Terminated by signal %d.\n", (int) pid, WTERMSIG (p->status));
-                    }
-                    return 0;
-                }
-        fprintf (stderr, "No child process %d.\n", pid);
-        return -1;
-    }
-    else if (pid == 0 || errno == ECHILD)
-        /* No processes ready to report.  */
-        return -1;
-    else {
-        /* Other weird errors.  */
-        perror ("waitpid");
-        return -1;
-    }
-}
-
-/* Check for processes that have status information available,
-   without blocking.  */
-void update_status (void) {
-    int status;
-    pid_t pid;
-
-    do
-        pid = waitpid (WAIT_ANY, &status, WUNTRACED|WNOHANG);
-    while (!mark_process_status (pid, status));
-}
-
-/* Check for processes that have status information available,
-   blocking until all processes in the given job have reported.  */
-void wait_for_job (job *j) {
-    int status;
-    pid_t pid;
-
-    do
-        pid = waitpid (WAIT_ANY, &status, WUNTRACED);
-    while (!mark_process_status (pid, status) && !job_is_stopped (j) && !job_is_completed (j));
 }
 
 /* Format information about job status for the user to look at.  */
@@ -175,21 +123,3 @@ void do_job_notification (void) {
     }
 }
 
-/* Mark a stopped job J as being running again.  */
-void mark_job_as_running (job *j) {
-    process *p;
-
-    for (p = j->first_process; p; p = p->next)
-        p->stopped = 0;
-
-    j->notified = 0;
-}
-
-/* Continue the job J.  */
-void continue_job (job *j, int foreground) {
-    mark_job_as_running (j);
-    if (foreground)
-        put_job_in_foreground (j, 1);
-    else
-        put_job_in_background (j, 1);
-}
