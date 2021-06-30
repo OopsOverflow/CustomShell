@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 3.16)
-project(microshell C)
+cmake_minimum_required(VERSION 3.18)
+project(microshell)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 11)
+include_directories(src)
 
-add_executable(microshell src/shell/shell.c src/process/process.c src/job/job.c src/shell_exec.c src/shell/shell_functions.c)
+enable_testing()
+
+add_subdirectory(src)
+add_subdirectory(test)
+add_subdirectory(lib/googletest)
